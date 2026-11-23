@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sentence Sort</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,600;1,400&display=swap">
+<style>
+:root{--bg:#eef2f6;--card:#fff;--ink:#1b2a3a;--mute:#5a6b7d;--line:#cdd7e1;--mark:#f2b705;--ok:#1f7a4d;--bad:#b3362b;
+--b1:#dfe9f7;--b2:#e6f0df;--b3:#f6e4e9;--b4:#efe5f7;--b5:#fbeeda;--b6:#dcf0ee;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#12191f;--card:#1b252e;--ink:#e8eef4;--mute:#9aabbb;--line:#33414e;--ok:#58c58d;--bad:#ff8a7d;
+--b1:#22344d;--b2:#27402b;--b3:#46283a;--b4:#37294a;--b5:#4a3720;--b6:#1f4140}}
+:root[data-theme="dark"]{--bg:#12191f;--card:#1b252e;--ink:#e8eef4;--mute:#9aabbb;--line:#33414e;--ok:#58c58d;--bad:#ff8a7d;--b1:#22344d;--b2:#27402b;--b3:#46283a;--b4:#37294a;--b5:#4a3720;--b6:#1f4140}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:900px;margin:0 auto;padding:20px 16px 40px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap}
+h1{font:600 1.5rem/1.2 Newsreader,Georgia,serif;margin:0}
+.stats{color:var(--mute);font-size:.95rem}
+.bar{height:6px;background:var(--line);border-radius:3px;margin:12px 0 16px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ok);transition:width .3s}
+.score{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.team{flex:1;min-width:110px;background:var(--card);border:2px solid var(--line);border-radius:8px;padding:8px 12px}
+.team.on{border-color:var(--mark);box-shadow:0 0 0 2px var(--mark)}
+.team b{display:block;font-size:.9rem}.team span{font:600 1.6rem Newsreader,Georgia,serif}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:28px 24px;min-height:150px}
+.hint{color:var(--mute);font-size:.9rem;margin:0 0 10px;display:flex;justify-content:space-between}
+.timer{font-weight:600;color:var(--ink)}.timer.low{color:var(--bad)}
+.sent{font:400 1.55rem/1.6 Newsreader,Georgia,serif;margin:0}
+.sent u{text-decoration:none;background:linear-gradient(transparent 62%,var(--mark) 62%,var(--mark) 92%,transparent 92%);font-weight:600}
+.bins{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0}
+.bin{border:2px solid transparent;border-radius:8px;padding:14px 10px;font:inherit;color:var(--ink);cursor:pointer;text-align:left;min-height:64px}
+.bin:hover:not(:disabled){border-color:var(--ink)}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid var(--ink);outline-offset:2px}
+.bin b{display:block}.bin small{color:var(--mute)}
+.bin[data-k="0"]{background:var(--b1)}.bin[data-k="1"]{background:var(--b2)}.bin[data-k="2"]{background:var(--b3)}
+.bin[data-k="3"]{background:var(--b4)}.bin[data-k="4"]{background:var(--b5)}.bin[data-k="5"]{background:var(--b6)}
+.bin.right{border-color:var(--ok)}.bin.wrong{border-color:var(--bad)}
+.bin:disabled{cursor:default;opacity:.85}
+.fb{min-height:3.2em;margin:0 0 12px}
+.fb .ok{color:var(--ok);font-weight:600}.fb .no{color:var(--bad);font-weight:600}
+.btn{background:var(--ink);color:var(--bg);border:0;border-radius:8px;padding:10px 20px;font:inherit;font-weight:600;cursor:pointer}
+.btn[hidden]{display:none}
+.btn.alt{background:transparent;color:var(--ink);border:2px solid var(--ink)}
+.menu h2,.end h2{font:600 1.6rem Newsreader,Georgia,serif;margin:0 0 8px}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:14px}
+.mode{border:2px solid var(--line);border-radius:8px;padding:14px;background:var(--bg)}
+.mode h3{margin:0 0 4px;font-size:1.05rem}.mode p{margin:0 0 10px;color:var(--mute);font-size:.92rem}
+.mode label{display:block;font-size:.9rem;margin-bottom:8px}
+.mode select{font:inherit;margin-left:6px}
+.miss{margin:12px 0 0;padding:0;list-style:none}
+.miss li{border-top:1px solid var(--line);padding:10px 0}
+.miss em{color:var(--mute);font-style:normal;font-size:.9rem}
+.tools{margin-top:18px}
+@media(max-width:700px){.bins{grid-template-columns:repeat(2,1fr)}.modes{grid-template-columns:1fr}.sent{font-size:1.3rem}}
+@media(prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+<header><h1>Sentence Sort</h1><div class="stats" id="stats"></div></header>
+<div class="bar"><i id="prog"></i></div>
+<div class="score" id="score"></div>
+<div class="card" id="card"></div>
+<div class="bins" id="bins"></div>
+<p class="fb" id="fb" aria-live="polite"></p>
+<button class="btn" id="next" hidden>Next sentence</button>
+<div class="tools"><button class="btn alt" id="menuBtn" hidden>Back to menu</button></div>
+</main>
+<script>
+var CATS=[
+["Conjunctive adverb","however, therefore"],
+["Adverbial clause","answers when, why, how"],
+["Appositive","renames a noun"],
+["Adjectival clause","describes a noun"],
+["Active voice","subject does the action"],
+["Passive voice","subject receives the action"]];
+var ITEMS=[
+["The experiment failed twice; <u>nevertheless</u>, the team refused to quit.",0,"Nevertheless is a conjunctive adverb linking two independent ideas."],
+["Maya studied for weeks; <u>consequently</u>, the exam felt manageable.",0,"Consequently shows result and connects two complete thoughts."],
+["The museum is free on Sundays. <u>Moreover</u>, it offers guided tours.",0,"Moreover adds to the previous sentence; it is a conjunctive adverb."],
+["<u>Because the bridge had washed out</u>, the buses took a longer route.",1,"It has a subject and verb, begins with a subordinator (because), and explains why."],
+["The crowd cheered <u>as soon as the lights came on</u>.",1,"It tells when the cheering happened, so it modifies the verb."],
+["<u>Although he had never sung in public</u>, Theo volunteered for the solo.",1,"Although introduces a dependent clause that modifies the main verb."],
+["Ms. Alvarez, <u>our school's librarian</u>, started a poetry club.",2,"It renames Ms. Alvarez and has no verb of its own."],
+["The Colosseum, <u>an ancient amphitheater in Rome</u>, draws millions of visitors.",2,"It is a noun phrase that renames the Colosseum."],
+["Jada's favorite book, <u>a dystopian novel set on Mars</u>, was banned from the reading list.",2,"It renames the book with a noun phrase, not a clause."],
+["The student <u>who won the debate</u> thanked her coach.",3,"Who begins a clause that describes the noun student."],
+["The novel, <u>which was published in 1925</u>, still feels modern.",3,"Which begins a clause that adds detail about the novel."],
+["The trail <u>that leads to the summit</u> closes at dusk.",3,"That begins a clause that identifies which trail."],
+["The committee <u>approved</u> the budget on Tuesday.",4,"The subject (committee) performs the action."],
+["Wildfires <u>have destroyed</u> thousands of acres this season.",4,"Wildfires do the destroying, so the voice is active."],
+["Nora <u>painted</u> the mural over the summer.",4,"Nora is the doer of the action."],
+["The winning goal <u>was scored</u> in the final minute.",5,"A form of be plus a past participle; the goal receives the action."],
+["The letters <u>had been hidden</u> in the attic for decades.",5,"Had been hidden is passive; the letters receive the action."],
+["The old bridge <u>is being repaired</u> by city crews.",5,"Is being repaired is passive; the crews are in a by-phrase."]];
+var SECS=15,Q,i,score,streak,missed,done,answered,mode,timed,teams,tscore,T,left;
+var $=function(id){return document.getElementById(id)};
+function shuffle(a){a=a.slice();for(var j=a.length-1;j>0;j--){var k=Math.floor(Math.random()*(j+1));var t=a[j];a[j]=a[k];a[k]=t}return a}
+function bins(){
+  var h="";CATS.forEach(function(c,k){h+='<button class="bin" data-k="'+k+'"><b>'+(k+1)+'. '+c[0]+'</b><small>'+c[1]+'</small></button>'});
+  $("bins").innerHTML=h;
+  Array.prototype.forEach.call(document.querySelectorAll(".bin"),function(b){b.onclick=function(){pick(+b.dataset.k)}});
+}
+function menu(){
+  clearInterval(T);done=true;answered=true;
+  $("bins").innerHTML="";$("fb").innerHTML="";$("next").hidden=true;$("menuBtn").hidden=true;
+  $("score").innerHTML="";$("prog").style.width="0";$("stats").textContent="";
+  $("card").innerHTML='<div class="menu"><h2>Choose a mode</h2><p class="hint">Each round has 18 sentences in a new order.</p><div class="modes">'+
+  '<div class="mode"><h3>Solo practice</h3><p>No clock. Explanations after every answer.</p><button class="btn" id="m1">Start</button></div>'+
+  '<div class="mode"><h3>Timed</h3><p>'+SECS+' seconds per sentence. A timeout counts as a miss.</p><button class="btn" id="m2">Start</button></div>'+
+  '<div class="mode"><h3>Team play</h3><p>Teams take turns. Project it and let the team in the spotlight confer.</p>'+
+  '<label>Teams<select id="nt"><option>2</option><option selected>3</option><option>4</option></select></label>'+
+  '<label><input type="checkbox" id="tt"> Add '+SECS+'-second timer</label><button class="btn" id="m3">Start</button></div></div></div>';
+  $("m1").onclick=function(){start("solo",false,0)};
+  $("m2").onclick=function(){start("solo",true,0)};
+  $("m3").onclick=function(){start("team",$("tt").checked,+$("nt").value)};
+}
+function start(m,t,n){
+  mode=m;timed=t;teams=n;tscore=[];for(var j=0;j<n;j++)tscore.push(0);
+  Q=shuffle(ITEMS);i=0;score=0;streak=0;missed=[];done=false;bins();$("menuBtn").hidden=false;show();
+}
+function stats(){
+  $("prog").style.width=(i/Q.length*100)+"%";
+  if(mode==="team"){
+    $("stats").textContent="Sentence "+Math.min(i+1,Q.length)+" of "+Q.length;
+    var h="";for(var j=0;j<teams;j++)h+='<div class="team'+(j===i%teams&&!done?' on':'')+'"><b>Team '+(j+1)+'</b><span>'+tscore[j]+'</span></div>';
+    $("score").innerHTML=h;
+  }else{$("stats").textContent="Score "+score+" of "+Q.length+"  |  Streak "+streak}
+}
+function show(){
+  stats();$("fb").innerHTML="";$("next").hidden=true;answered=false;
+  var who=mode==="team"?"Team "+(i%teams+1)+", sort the highlighted words.":"Sort the highlighted words.";
+  $("card").innerHTML='<p class="hint"><span>'+who+'</span><span class="timer" id="tm"></span></p><p class="sent">'+Q[i][0]+'</p>';
+  Array.prototype.forEach.call(document.querySelectorAll(".bin"),function(b){b.disabled=false;b.className="bin"});
+  clearInterval(T);
+  if(timed){left=SECS;tick();T=setInterval(function(){left--;tick();if(left<=0)pick(-1)},1000)}
+}
+function tick(){var e=$("tm");if(e){e.textContent=left+"s";e.className="timer"+(left<=5?" low":"")}}
+function pick(k){
+  if(answered||done)return;answered=true;clearInterval(T);
+  var it=Q[i],ok=k===it[1],bs=document.querySelectorAll(".bin");
+  Array.prototype.forEach.call(bs,function(b){b.disabled=true});
+  bs[it[1]].classList.add("right");
+  if(ok){score++;streak++;if(mode==="team")tscore[i%teams]++}
+  else{streak=0;if(k>=0)bs[k].classList.add("wrong");missed.push(it)}
+  $("fb").innerHTML=(ok?'<span class="ok">Correct.</span> ':'<span class="no">'+(k<0?"Time is up. ":"Not quite. ")+'It is '+CATS[it[1]][0].toLowerCase()+'.</span> ')+it[2];
+  stats();
+  var n=$("next");n.hidden=false;n.textContent=i===Q.length-1?"See results":"Next sentence";n.focus();
+}
+$("next").onclick=function(){i++;if(i>=Q.length){finish()}else{show()}};
+$("menuBtn").onclick=menu;
+function finish(){
+  done=true;clearInterval(T);$("bins").innerHTML="";$("fb").innerHTML="";$("next").hidden=true;stats();
+  var h='<div class="end">';
+  if(mode==="team"){
+    var mx=Math.max.apply(null,tscore),w=[];tscore.forEach(function(s,j){if(s===mx)w.push("Team "+(j+1))});
+    h+='<h2>'+(w.length>1?"Tie: "+w.join(" and "):w[0]+" wins")+' with '+mx+'</h2>';
+  }else h+='<h2>'+score+' of '+Q.length+' correct</h2>';
+  if(missed.length){h+='<p>Worth a second look:</p><ul class="miss">';
+    missed.forEach(function(m){h+='<li>'+m[0]+'<br><em>'+CATS[m[1]][0]+': '+m[2]+'</em></li>'});h+='</ul>'}
+  else h+='<p>Perfect round. Nothing to review.</p>';
+  h+='<p><button class="btn" id="again">Play again</button></p></div>';
+  $("card").innerHTML=h;$("again").onclick=function(){start(mode,timed,teams)};
+}
+document.addEventListener("keydown",function(e){var n=parseInt(e.key,10);if(n>=1&&n<=6)pick(n-1)});
+menu();
+</script>
+</body>
+</html>
